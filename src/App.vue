@@ -3,7 +3,6 @@ import { Ref, ref } from 'vue';
 import BingoBoard from './components/BingoBoard.vue';
 import FileInput from './components/FileInput.vue';
 
-
 class Field {
   num : number = 0
   highlighted : boolean = false
@@ -17,22 +16,32 @@ interface Board {
   fields : Field[]
 }
 
-const draw = ref([2, 24])
-const boards : Ref<Board[]> = ref([{fields: [new Field(2)]}])
+const onFileSubmitted = (text : string) => {
+  const lines = text.split(/\r?\n|\r|\n/g)
+  console.log("Draw:", lines[0])
+  if(!/([\d]+,)+[\d]+/.test(lines[0])){
+    console.error("Input didn't pass Regex", lines[0], /([\d]+,)+[\d]+/)
+    return
+  }
+  draw.value = lines[0].split(",")
+}
+
+const draw = ref<string[] | []>([])
+const boards : Ref<Board[]> = ref([])
 
 export type { Field }
 </script>
   
 <template>
   <div class="draw">
-    {{ draw.toString() }}
+    {{ draw.toString()}}
   </div>
 
   <div class="board-container">
     <BingoBoard v-for="(board, index) in boards" :fields="board.fields" :index="index"></BingoBoard>
   </div>
 
-  <FileInput></FileInput>
+  <FileInput @file-submitted="onFileSubmitted"></FileInput>
   
 </template>
 
