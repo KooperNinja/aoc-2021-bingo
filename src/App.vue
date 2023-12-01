@@ -17,14 +17,55 @@ interface Board {
 }
 
 const onFileSubmitted = (text : string) => {
-  const lines = text.split(/\r?\n|\r|\n/g)
-  console.log("Draw:", lines[0])
+  let lines = text.split(/\r?\n|\r|\n/g)
+  
+  //Checking the Draw Line
   if(!/([\d]+,)+[\d]+/.test(lines[0])){
-    console.error("Input didn't pass Regex", lines[0], /([\d]+,)+[\d]+/)
+    console.error("Draw Input didn't pass Regex", lines[0], /([\d]+,)+[\d]+/)
     return
   }
   draw.value = lines[0].split(",")
+  
+  //Remove Draw line, as it has been handled
+  lines.splice(0, 1)
+  
+  //Remove spacing lines
+  for(const line of lines) {
+    if(/[\d ]+[\d]/.test(line)) continue
+    const index = lines.indexOf(line)
+    lines.splice(index, 1)
+  }
+
+  let newBoard : Board | null = null
+  for(const line of lines) {
+    const index = lines.indexOf(line)
+    //First Row of Board
+    if(index%5 == 0) {
+      newBoard = { fields: []}
+    }
+    const numbers = line.split(/[ ]+?[ ]*/)
+
+    for(const numberString of numbers) {
+      if(numberString.length < 1) continue
+      const num = Number(numberString)
+      newBoard?.fields.push(new Field(num))
+    }
+    //Last Row of Board
+    if(index%5 == 4) {
+      if(newBoard == null) continue
+      if(newBoard.fields.length > 25) {
+        console.error(newBoard, "has more than 25 fields")
+        continue
+      }
+      boards.value.push(newBoard)
+    }
+  }
+
+  console.log(lines)
+  console.log(boards.value)
 }
+
+
 
 const draw = ref<string[] | []>([])
 const boards : Ref<Board[]> = ref([])
@@ -34,7 +75,7 @@ export type { Field }
   
 <template>
   <div class="draw">
-    {{ draw.toString()}}
+    <p>{{ draw.toString()}}</p>
   </div>
 
   <div class="board-container">
@@ -46,6 +87,16 @@ export type { Field }
 </template>
 
 <style scoped>
+
+.board-container {
+  display: grid;
+  grid-template-columns: auto auto auto auto auto;
+}
+.draw p {
+  text-align: left;
+  overflow: hidden;
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;
