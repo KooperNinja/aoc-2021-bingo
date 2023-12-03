@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Ref, ref } from 'vue';
-import BingoBoard from './components/BingoBoard.vue';
+import BingoBoard, { Winner } from './components/BingoBoard.vue';
 import FileInput from './components/FileInput.vue';
 
 class Field {
@@ -15,6 +15,7 @@ class Field {
 interface Board {
   fields : Field[]
 }
+
 
 const onFileSubmitted = (text : string) => {
   let lines = text.split(/\r?\n|\r|\n/g)
@@ -65,21 +66,46 @@ const onFileSubmitted = (text : string) => {
   console.log(boards.value)
 }
 
+const onBoardWon = (winner : Winner) => {
+  winnerRef.value = winner
+}
 
+const setNextDraw = () => {
+  nextDraw.value = Number(draw.value[0])
+  draw.value.shift()
+}
 
 const draw = ref<string[] | []>([])
+const nextDraw = ref<number | null>(null)
 const boards : Ref<Board[]> = ref([])
+const winnerRef = ref<Winner | null>(null)
 
 export type { Field }
 </script>
   
 <template>
+
+  <div class="winner"
+    v-if="winnerRef"
+  >
+    <div class="score">Score <br> {{ winnerRef.score }}</div>
+    <BingoBoard :fields="winnerRef.fields" :index="winnerRef.boardindex" :next-draw="0"></BingoBoard>
+  </div>
+
+  <button v-if="draw.length > 0 && !winnerRef" @click="setNextDraw()">Draw Number</button>
+
   <div class="draw">
     <p>{{ draw.toString()}}</p>
   </div>
 
   <div class="board-container">
-    <BingoBoard v-for="(board, index) in boards" :fields="board.fields" :index="index"></BingoBoard>
+    <BingoBoard v-for="(board, index) in boards" 
+      :fields="board.fields" 
+      :index="index" 
+      :next-draw="nextDraw" 
+      
+      @board-won="onBoardWon"
+      ></BingoBoard>
   </div>
 
   <FileInput @file-submitted="onFileSubmitted"></FileInput>
@@ -91,6 +117,7 @@ export type { Field }
 .board-container {
   display: grid;
   grid-template-columns: auto auto auto auto auto;
+  text-align: center;
 }
 .draw p {
   text-align: left;
@@ -108,5 +135,13 @@ export type { Field }
 }
 .logo.vue:hover {
   filter: drop-shadow(0 0 2em #42b883aa);
+}
+.score {
+  font-size: 2rem;
+}
+.winner {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  border-color: #42b883aa;
 }
 </style>
