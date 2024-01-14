@@ -1,5 +1,10 @@
 # aoc-2021-bingo
 
+## Requirements
+
+- Node (Version of Development: v18.4.0)
+- Node Package Manager (Version of Development: 9.6.7)
+
 
 ## How to setup
 
